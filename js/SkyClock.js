@@ -25,15 +25,10 @@ export class SkyClock {
             location: null,
             locationName: '',
             date: new Date(),
-            sunrise: null,
-            sunset: null,
             sunData: null,
             currentTime: new Date(),
             timezoneOffset: 0  // Offset in hours from UTC for the location
         };
-
-        // Twilight data for accurate sunrise/sunset color spans
-        this.twilightData = null;
 
         // Clock dimensions
         this.dimensions = {
@@ -207,11 +202,7 @@ export class SkyClock {
                 this.state.date
             );
 
-            this.state.sunrise = sunData.sunrise;
-            this.state.sunset = sunData.sunset;
             this.state.sunData = sunData;
-            this.twilightData = SunService.getTwilightDurations(sunData);
-
             this.updateInfoPanel();
         } catch (error) {
             console.error('Error fetching sun data:', error);
@@ -220,14 +211,20 @@ export class SkyClock {
 
     updateInfoPanel() {
         const tzOffset = this.state.timezoneOffset;
-        document.getElementById('sunriseDisplay').textContent = TimeUtils.formatTime(this.state.sunrise, tzOffset);
-        document.getElementById('sunsetDisplay').textContent = TimeUtils.formatTime(this.state.sunset, tzOffset);
-        this.updateCurrentTimeDisplay();
-
-        if (this.state.sunrise && this.state.sunset) {
-            const dayLength = this.state.sunset - this.state.sunrise;
+        const sunData = this.state.sunData;
+        
+        if (sunData) {
+            document.getElementById('sunriseDisplay').textContent = TimeUtils.formatTime(sunData.sunrise, tzOffset);
+            document.getElementById('sunsetDisplay').textContent = TimeUtils.formatTime(sunData.sunset, tzOffset);
+            const dayLength = sunData.sunset - sunData.sunrise;
             document.getElementById('dayLengthDisplay').textContent = TimeUtils.formatDuration(dayLength);
+        } else {
+            document.getElementById('sunriseDisplay').textContent = '--:--';
+            document.getElementById('sunsetDisplay').textContent = '--:--';
+            document.getElementById('dayLengthDisplay').textContent = '--';
         }
+        
+        this.updateCurrentTimeDisplay();
     }
 
     setMode(mode) {
@@ -270,7 +267,7 @@ export class SkyClock {
 
         this.layers.background.render(this.dimensions);
         this.layers.frame.render(this.dimensions);
-        this.layers.clockFace.render(this.dimensions, this.state, rotationOffset, this.twilightData);
+        this.layers.clockFace.render(this.dimensions, this.state, rotationOffset);
         this.layers.effects.render(this.dimensions);
     }
 }

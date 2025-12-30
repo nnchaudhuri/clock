@@ -55,7 +55,7 @@ export class ClockFaceLayer {
         };
     }
 
-    render(dimensions, state, rotationOffset, twilightData) {
+    render(dimensions, state, rotationOffset) {
         const ctx = this.ctx;
         const { centerX, centerY, outerRadius, innerRadius } = dimensions;
         const size = centerX * 2;
@@ -71,7 +71,7 @@ export class ClockFaceLayer {
 
         // Draw daylight arc if we have sun data
         if (state.sunData) {
-            this.renderDaylightArc(dimensions, state, rotationOffset, twilightData);
+            this.renderDaylightArc(dimensions, state, rotationOffset);
             this.renderCenterSky(dimensions, state);
         } else {
             // No sun data yet - fill center with dark color
@@ -88,7 +88,7 @@ export class ClockFaceLayer {
         this.renderHourMarkers(dimensions, rotationOffset);
     }
 
-    renderDaylightArc(dimensions, state, rotationOffset, twilightData) {
+    renderDaylightArc(dimensions, state, rotationOffset) {
         const ctx = this.ctx;
         const { centerX, centerY, outerRadius, innerRadius } = dimensions;
 
@@ -284,7 +284,7 @@ export class ClockFaceLayer {
 
     renderTimeIndicator(dimensions, state, rotationOffset) {
         const ctx = this.ctx;
-        const { centerX, centerY, outerRadius, innerRadius, ringWidth } = dimensions;
+        const { centerX, centerY, outerRadius, innerRadius } = dimensions;
 
         let angle;
         if (state.mode === 'fixed') {

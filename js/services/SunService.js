@@ -29,22 +29,4 @@ export class SunService {
             dayLength: data.results.day_length
         };
     }
-
-    /**
-     * Calculate twilight durations in hours
-     */
-    static getTwilightDurations(sunData) {
-        const sunriseDuration = (sunData.sunrise - sunData.civilTwilightBegin) / 3600000; // hours
-        const sunsetDuration = (sunData.civilTwilightEnd - sunData.sunset) / 3600000; // hours
-        const dayLength = (sunData.sunset - sunData.sunrise) / 3600000; // hours
-
-        return {
-            sunriseDuration,
-            sunsetDuration,
-            dayLength,
-            // Calculate what percentage of daylight the twilight periods represent
-            sunrisePercent: sunriseDuration / dayLength,
-            sunsetPercent: sunsetDuration / dayLength
-        };
-    }
 }
