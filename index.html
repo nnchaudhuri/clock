@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sky Clock</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Menu toggle button -->
+        <button id="menuToggle" class="menu-toggle" aria-label="Open settings menu">
+            <span class="hamburger-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </span>
+        </button>
+
+        <!-- Dropdown menu panel -->
+        <div id="menuPanel" class="menu-panel">
+            <!-- Display Mode at top -->
+            <div class="control-group">
+                <label>Display Mode</label>
+                <div class="mode-toggle">
+                    <button id="fixedModeBtn" class="mode-btn">Fixed</button>
+                    <button id="rotatingModeBtn" class="mode-btn active">Rotating</button>
+                </div>
+                <p class="mode-description" id="modeDescription">
+                    Current time at top, arc rotates
+                </p>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="control-group">
+                <label for="locationInput">Location</label>
+                <input type="text" id="locationInput" placeholder="City or coordinates (lat,lng)">
+                <div class="button-row">
+                    <button id="searchBtn">Search</button>
+                    <button id="useMyLocation">My Location</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="dateInput">Date</label>
+                <input type="text" id="dateInput" placeholder="YYYY-MM-DD">
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="info-panel">
+                <div class="info-item">
+                    <span class="info-label">Location</span>
+                    <span id="locationDisplay">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Time</span>
+                    <span id="currentTimeDisplay">--:--</span>
+                </div>
+                <div class="info-item sunrise">
+                    <span class="info-label">Sunrise</span>
+                    <span id="sunriseDisplay">--:--</span>
+                </div>
+                <div class="info-item sunset">
+                    <span class="info-label">Sunset</span>
+                    <span id="sunsetDisplay">--:--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Day Length</span>
+                    <span id="dayLengthDisplay">--:--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clock container - fills most of the screen -->
+        <div class="clock-container">
+            <canvas id="backgroundLayer" class="clock-layer"></canvas>
+            <canvas id="frameLayer" class="clock-layer"></canvas>
+            <canvas id="clockFaceLayer" class="clock-layer"></canvas>
+            <canvas id="effectsLayer" class="clock-layer"></canvas>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
