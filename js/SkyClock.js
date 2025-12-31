@@ -7,7 +7,6 @@ import { TimeUtils } from './utils/TimeUtils.js';
 import { BackgroundLayer } from './renderer/BackgroundLayer.js';
 import { FrameLayer } from './renderer/FrameLayer.js';
 import { ClockFaceLayer } from './renderer/ClockFaceLayer.js';
-import { EffectsLayer } from './renderer/EffectsLayer.js';
 
 export class SkyClock {
     constructor() {
@@ -15,8 +14,7 @@ export class SkyClock {
         this.layers = {
             background: new BackgroundLayer(document.getElementById('backgroundLayer')),
             frame: new FrameLayer(document.getElementById('frameLayer')),
-            clockFace: new ClockFaceLayer(document.getElementById('clockFaceLayer')),
-            effects: new EffectsLayer(document.getElementById('effectsLayer'))
+            clockFace: new ClockFaceLayer(document.getElementById('clockFaceLayer'))
         };
 
         // Clock state
@@ -114,8 +112,7 @@ export class SkyClock {
         const canvases = [
             document.getElementById('backgroundLayer'),
             document.getElementById('frameLayer'),
-            document.getElementById('clockFaceLayer'),
-            document.getElementById('effectsLayer')
+            document.getElementById('clockFaceLayer')
         ];
 
         canvases.forEach(canvas => {
@@ -268,6 +265,5 @@ export class SkyClock {
         this.layers.background.render(this.dimensions);
         this.layers.frame.render(this.dimensions);
         this.layers.clockFace.render(this.dimensions, this.state, rotationOffset);
-        this.layers.effects.render(this.dimensions);
     }
 }

@@ -3,6 +3,7 @@
  */
 import { ColorUtils } from '../utils/ColorUtils.js';
 import { TimeUtils } from '../utils/TimeUtils.js';
+import { MoonService } from '../services/MoonService.js';
 
 export class ClockFaceLayer {
     constructor(canvas) {
@@ -24,18 +25,16 @@ export class ClockFaceLayer {
                 '#ffb4d6', '#ffb8cc', '#ffbdc2', '#ffc1b8', '#ffc5ae',
                 '#ffc9a4', '#ffcd9a', '#ffd190', '#ffd586', '#ffd97c'
             ],
-            // Sunrise to midday to sunset: gold -> cream -> blue (extended) -> cream -> gold
+            // Sunrise to midday to sunset: gold -> cream -> blue (76% blue) -> cream -> gold
             midday: [
-                '#ffd97c', '#ffdd88', '#ffe5a0', '#feedb8', '#fef5d0',
-                '#fcfde8', '#f0f8ff', '#dcedff', '#c8e2ff', '#87ceeb',
-                '#75c2e9', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
-                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
-                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
-                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
-                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
-                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#75c2e9',
-                '#87ceeb', '#c8e2ff', '#dcedff', '#f0f8ff', '#fcfde8',
-                '#fef5d0', '#feedb8', '#ffe5a0', '#ffdd88', '#ffd97c'
+                '#ffd97c', '#ffe5a0', '#fef5d0', '#f0f8ff', '#c8e2ff', '#87ceeb',
+                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
+                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
+                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
+                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
+                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
+                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
+                '#63b6e7', '#87ceeb', '#c8e2ff', '#f0f8ff', '#fef5d0', '#ffe5a0', '#ffd97c'
             ],
             // Sunset to evening civil twilight: gold -> orange -> coral -> pink -> magenta -> purple
             eveningSunset: [
@@ -79,6 +78,16 @@ export class ClockFaceLayer {
             ctx.arc(centerX, centerY, innerRadius - 6, 0, Math.PI * 2);
             ctx.fillStyle = this.colors.night;
             ctx.fill();
+        }
+
+        // Draw sun on the ring (at solar noon position)
+        if (state.sunData) {
+            this.renderSun(dimensions, state, rotationOffset);
+        }
+
+        // Draw moon on the ring
+        if (state.location) {
+            this.renderMoon(dimensions, state, rotationOffset);
         }
 
         // Draw time indicator
@@ -309,6 +318,216 @@ export class ClockFaceLayer {
         ctx.lineWidth = indicatorWidth;
         ctx.lineCap = 'butt';
         ctx.stroke();
+    }
+
+    renderSun(dimensions, state, rotationOffset) {
+        const ctx = this.ctx;
+        const { centerX, centerY, outerRadius, innerRadius } = dimensions;
+        
+        // Get sun data
+        const sunData = state.sunData;
+        if (!sunData || !sunData.sunrise || !sunData.sunset) return;
+        
+        const timezoneOffset = state.timezoneOffset || 0;
+        
+        // Calculate solar noon (midpoint between sunrise and sunset)
+        const sunriseHours = TimeUtils.getHoursAtLocation(sunData.sunrise, timezoneOffset);
+        const sunsetHours = TimeUtils.getHoursAtLocation(sunData.sunset, timezoneOffset);
+        const solarNoonHours = (sunriseHours + sunsetHours) / 2;
+        
+        // Convert to angle using same logic as TimeUtils.getAngleAtLocation
+        // (subtract 12 so noon is at top, then convert to radians)
+        const adjustedHours = solarNoonHours - 12;
+        let sunAngle = (adjustedHours * Math.PI) / 12;
+        
+        // Apply rotation offset for rotating mode
+        sunAngle += rotationOffset;
+        
+        // Convert to canvas angle (top = -π/2)
+        const canvasAngle = sunAngle - Math.PI / 2;
+        
+        // Position sun closer to outer edge (so it doesn't intersect moon's orbit)
+        const ringWidth = outerRadius - innerRadius;
+        const sunOrbitRadius = outerRadius - ringWidth * 0.28;
+        const sunX = centerX + Math.cos(canvasAngle) * sunOrbitRadius;
+        const sunY = centerY + Math.sin(canvasAngle) * sunOrbitRadius;
+        
+        // Sun size - same as moon
+        const sunRadius = ringWidth * 0.18;
+        
+        // Draw white sun circle
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        
+        // Add yellow outline (same thickness as moon)
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
+
+    renderMoon(dimensions, state, rotationOffset) {
+        const ctx = this.ctx;
+        const { centerX, centerY, outerRadius, innerRadius } = dimensions;
+        
+        // Create a date that combines the selected date with the current time of day
+        // This way changing the date affects the moon phase, but the position still moves with time
+        const selectedDate = state.date || new Date();
+        const currentTime = state.currentTime || new Date();
+        
+        // For phase calculation, use the selected date at the current time of day
+        const dateForMoon = new Date(selectedDate);
+        dateForMoon.setHours(currentTime.getHours(), currentTime.getMinutes(), currentTime.getSeconds());
+        
+        // Get moon data using the selected date
+        const moonData = MoonService.getMoonData(
+            dateForMoon,
+            state.location.lat,
+            state.location.lng
+        );
+        
+        // Get moon's position angle on the clock
+        let moonAngle = MoonService.getMoonClockAngle(
+            dateForMoon,
+            state.location.lat,
+            state.location.lng,
+            state.timezoneOffset || 0
+        );
+        
+        // Apply rotation offset for rotating mode
+        moonAngle += rotationOffset;
+        
+        // Convert to canvas angle (top = -π/2)
+        const canvasAngle = moonAngle - Math.PI / 2;
+        
+        // Position moon closer to inner edge (so it doesn't intersect sun's orbit)
+        const ringWidth = outerRadius - innerRadius;
+        const moonOrbitRadius = innerRadius + ringWidth * 0.28;
+        const moonX = centerX + Math.cos(canvasAngle) * moonOrbitRadius;
+        const moonY = centerY + Math.sin(canvasAngle) * moonOrbitRadius;
+        
+        // Moon size - medium-small relative to ring width
+        const moonRadius = ringWidth * 0.18;
+        
+        // Draw the moon with phase using the illumination fraction for accuracy
+        // moonData.fraction is the actual percentage illuminated (0-1)
+        // moonData.phase is the phase position (0 = new, 0.5 = full)
+        this.drawMoonPhase(ctx, moonX, moonY, moonRadius, moonData.phase, moonData.fraction);
+    }
+
+    drawMoonPhase(ctx, x, y, radius, phase, fraction) {
+        // phase: 0 = new moon, 0.25 = first quarter, 0.5 = full, 0.75 = last quarter
+        // fraction: 0-1, the actual illuminated percentage of the moon's visible surface
+        
+        ctx.save();
+        
+        // Handle edge cases first
+        if (fraction < 0.01) {
+            // New moon - all dark
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#0a0a0f';
+            ctx.fill();
+            ctx.restore();
+            return;
+        }
+        
+        if (fraction > 0.99) {
+            // Full moon - all lit
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#f0f0e8';
+            ctx.fill();
+            ctx.restore();
+            return;
+        }
+        
+        // Determine if waxing or waning based on phase
+        // Waxing: phase 0 to 0.5 (right side lit in Northern Hemisphere)
+        // Waning: phase 0.5 to 1 (left side lit in Northern Hemisphere)
+        const isWaxing = phase < 0.5;
+        
+        // The terminator position is determined by the illumination fraction
+        // For waxing moons:
+        //   fraction = 0 (new): terminator at right edge (x = +radius)
+        //   fraction = 0.5 (half): terminator at center (x = 0)
+        //   fraction = 1 (full): terminator at left edge (x = -radius)
+        // So: terminatorX = radius * (1 - 2 * fraction)
+        //
+        // For fraction = 0.9 (90% lit): terminatorX = radius * (1 - 1.8) = -0.8 * radius
+        // This puts the terminator on the left, leaving 90% of the moon lit on the right
+        
+        const terminatorX = radius * (1 - 2 * fraction);
+        
+        // Draw base dark moon
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#0a0a0f';
+        ctx.fill();
+        
+        // Now draw the lit portion on top
+        ctx.beginPath();
+        
+        if (isWaxing) {
+            // Waxing: right side is lit
+            // For high fraction (e.g. 0.9), terminatorX is negative (-0.8*radius), on the left
+            // We draw from the terminator curve to the right edge
+            
+            // Start at top of terminator
+            const startY = -radius;
+            const startX = terminatorX * Math.sqrt(Math.max(0, 1 - (startY / radius) ** 2));
+            ctx.moveTo(x + startX, y + startY);
+            
+            // Draw right arc from top to bottom
+            ctx.arc(x, y, radius, -Math.PI / 2, Math.PI / 2, false);
+            
+            // Draw terminator curve from bottom back to top
+            const steps = 60;
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const yPos = radius - 2 * radius * t; // from radius to -radius
+                const xPos = terminatorX * Math.sqrt(Math.max(0, 1 - (yPos / radius) ** 2));
+                ctx.lineTo(x + xPos, y + yPos);
+            }
+        } else {
+            // Waning: left side is lit
+            // For waning, we need to mirror the terminator position
+            // Waning at 30%: terminatorX was +0.4r, but we need -0.4r to draw 30% on the left
+            const waningTerminatorX = -terminatorX;
+            
+            // Start at top of terminator
+            const startY = -radius;
+            const startX = waningTerminatorX * Math.sqrt(Math.max(0, 1 - (startY / radius) ** 2));
+            ctx.moveTo(x + startX, y + startY);
+            
+            // Draw left arc from top to bottom (counterclockwise)
+            ctx.arc(x, y, radius, -Math.PI / 2, Math.PI / 2, true);
+            
+            // Now at bottom of left arc, draw terminator curve back to top
+            const steps = 60;
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const yPos = radius - 2 * radius * t; // from radius to -radius (bottom to top)
+                const xPos = waningTerminatorX * Math.sqrt(Math.max(0, 1 - (yPos / radius) ** 2));
+                ctx.lineTo(x + xPos, y + yPos);
+            }
+        }
+        
+        ctx.closePath();
+        ctx.fillStyle = '#f0f0e8';
+        ctx.fill();
+        
+        // Add outline on top, similar to ring outlines
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = '#2a2a2a';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        ctx.restore();
     }
 
     renderHourMarkers(dimensions, rotationOffset) {

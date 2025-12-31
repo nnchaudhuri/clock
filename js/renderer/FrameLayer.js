@@ -1,5 +1,5 @@
 /**
- * Frame layer renderer (for future wood textures)
+ * Frame layer renderer
  */
 export class FrameLayer {
     constructor(canvas) {
@@ -31,7 +31,7 @@ export class FrameLayer {
         ctx.fill();
         ctx.restore();
 
-        // Frame gradient (simulating material - future: use texture)
+        // Frame gradient
         const frameGradient = ctx.createRadialGradient(
             centerX - 50, centerY - 50, 0,
             centerX, centerY, frameOuterRadius

@@ -1,5 +1,5 @@
 /**
- * Background layer renderer (for future wall textures)
+ * Background layer renderer
  */
 export class BackgroundLayer {
     constructor(canvas) {
@@ -13,8 +13,7 @@ export class BackgroundLayer {
         
         this.ctx.clearRect(0, 0, size, size);
         
-        // Simple dark background
-        // Future: Replace with wall texture image
+        // Dark background
         this.ctx.fillStyle = '#0a0a12';
         this.ctx.fillRect(0, 0, size, size);
     }
