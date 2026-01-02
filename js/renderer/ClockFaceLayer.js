@@ -10,48 +10,121 @@ export class ClockFaceLayer {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         
-        // Color palettes for full twilight cycle (nautical → civil → sunrise → day → sunset → civil → nautical)
-        this.colors = {
-            // Morning nautical twilight: deep night -> dark blue -> purple
-            morningNautical: [
-                '#0a0a0f', '#0d0d1a', '#101428', '#141b3d', '#182252',
-                '#1c2968', '#20307e', '#243888', '#2a4099', '#3048aa'
-            ],
-            // Morning civil twilight to sunrise: purple -> magenta -> pink -> coral -> orange -> gold
-            morningSunrise: [
-                '#3048aa', '#4350b8', '#5658c6', '#6960d0', '#7d68da',
-                '#9370db', '#a878e0', '#bc80e5', '#c988e8', '#d690eb',
-                '#e298ed', '#ee9fee', '#f8a5ee', '#faaae8', '#fcafe0',
-                '#ffb4d6', '#ffb8cc', '#ffbdc2', '#ffc1b8', '#ffc5ae',
-                '#ffc9a4', '#ffcd9a', '#ffd190', '#ffd586', '#ffd97c'
-            ],
-            // Sunrise to midday to sunset: gold -> cream -> blue (76% blue) -> cream -> gold
-            midday: [
-                '#ffd97c', '#ffe5a0', '#fef5d0', '#f0f8ff', '#c8e2ff', '#87ceeb',
-                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
-                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
-                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
-                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
-                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
-                '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7', '#63b6e7',
-                '#63b6e7', '#87ceeb', '#c8e2ff', '#f0f8ff', '#fef5d0', '#ffe5a0', '#ffd97c'
-            ],
-            // Sunset to evening civil twilight: gold -> orange -> coral -> pink -> magenta -> purple
-            eveningSunset: [
-                '#ffd97c', '#ffd586', '#ffd190', '#ffcd9a', '#ffc9a4',
-                '#ffc5ae', '#ffc1b8', '#ffbdc2', '#ffb8cc', '#ffb4d6',
-                '#fcafe0', '#faaae8', '#f8a5ee', '#ee9fee', '#e298ed',
-                '#d690eb', '#c988e8', '#bc80e5', '#a878e0', '#9370db',
-                '#7d68da', '#6960d0', '#5658c6', '#4350b8', '#3048aa'
-            ],
-            // Evening nautical twilight: purple -> dark blue -> deep night
-            eveningNautical: [
-                '#3048aa', '#2a4099', '#243888', '#20307e', '#1c2968',
-                '#182252', '#141b3d', '#101428', '#0d0d1a', '#0a0a0f'
-            ],
-            night: '#0a0a0f',
-            indicator: '#ffffff'
+        // Default 12-color sequence: sun, moon, then 10 sky colors
+        // Artistic palette inspired by impressionist paintings and moody atmospheres
+        // Colors 0-1: Sun and Moon colors
+        // Colors 2-3: Twilight (night to twilight end)
+        // Colors 4-6: Sunrise (3 colors)
+        // Colors 7-11: Morning to noon (5 colors)
+        // Evening is automatically mirrored
+        this.defaultColorSequence = [
+            '#f5e8d8',  // 0: Sun (warm cream)
+            '#e8e4dc',  // 1: Moon lit (soft ivory)
+            '#1a1a2e',  // 2: Night (deep navy-purple)
+            '#2d4059',  // 3: Twilight (slate blue)
+            '#a66d8f',  // 4: Sunrise 1 (dusty mauve)
+            '#d4a5a5',  // 5: Sunrise 2 (soft rose)
+            '#f0c5a0',  // 6: Sunrise End (warm peach)
+            '#e8dcc4',  // 7: Early Morning (warm cream)
+            '#c5d8d8',  // 8: Morning (soft mint)
+            '#a8c5c5',  // 9: Late Morning (muted teal)
+            '#8fa5a5',  // 10: Pre-Noon (sage)
+            '#7a9999'   // 11: Solar Noon (dusty teal)
+        ];
+        
+        // Store user colors
+        this.userColorSequence = [...this.defaultColorSequence];
+        
+        // Generate full color palettes from sequence
+        this.colors = this.generateColorPalettes(this.userColorSequence);
+    }
+
+    /**
+     * Set custom colors from user input (12-color array)
+     */
+    setCustomColors(colorSequence) {
+        if (Array.isArray(colorSequence) && colorSequence.length === 12) {
+            this.userColorSequence = [...colorSequence];
+        } else {
+            this.userColorSequence = [...this.defaultColorSequence];
+        }
+        this.colors = this.generateColorPalettes(this.userColorSequence);
+    }
+
+    /**
+     * Generate full color palettes from 12-color sequence
+     */
+    generateColorPalettes(seq) {
+        // Extract sun and moon colors
+        const sunColor = seq[0];
+        const moonColor = seq[1];
+        
+        // Twilight: colors 2-3 (night to twilight)
+        const morningNautical = this.generateGradient(seq[2], seq[3], 10);
+        
+        // Sunrise: colors 3-6 (twilight end to gold)
+        const morningSunrise = this.generateMultiGradient([seq[3], seq[4], seq[5], seq[6]], 25);
+        
+        // Midday: colors 6-11 for first half (sunrise end to noon), then mirror back
+        // First half: 6 -> 11 (gold to noon blue)
+        const firstHalf = this.generateMultiGradient(seq.slice(6, 12), 25);
+        // Second half: 11 -> 6 (noon blue back to gold)
+        const secondHalf = [...firstHalf].reverse().slice(1); // slice(1) to avoid duplicate noon color
+        const middayFull = [...firstHalf, ...secondHalf];
+        
+        // Evening is reverse of morning
+        const eveningSunset = [...morningSunrise].reverse();
+        const eveningNautical = [...morningNautical].reverse();
+        
+        return {
+            morningNautical,
+            morningSunrise,
+            midday: middayFull,
+            eveningSunset,
+            eveningNautical,
+            night: seq[2],
+            indicator: '#ffffff',
+            sun: sunColor,
+            moon: moonColor
         };
+    }
+
+    /**
+     * Generate a gradient between two colors
+     */
+    generateGradient(color1, color2, steps) {
+        const result = [];
+        for (let i = 0; i < steps; i++) {
+            const t = i / (steps - 1);
+            result.push(ColorUtils.interpolateHex(color1, color2, t));
+        }
+        return result;
+    }
+
+    /**
+     * Generate a gradient through multiple colors
+     */
+    generateMultiGradient(colors, totalSteps) {
+        if (colors.length < 2) return [colors[0]];
+        
+        const result = [];
+        const segments = colors.length - 1;
+        const stepsPerSegment = Math.floor(totalSteps / segments);
+        
+        for (let i = 0; i < segments; i++) {
+            const segmentSteps = (i === segments - 1) ? (totalSteps - result.length) : stepsPerSegment;
+            for (let j = 0; j < segmentSteps; j++) {
+                const t = j / segmentSteps;
+                result.push(ColorUtils.interpolateHex(colors[i], colors[i + 1], t));
+            }
+        }
+        
+        // Ensure we end with the last color
+        if (result.length < totalSteps) {
+            result.push(colors[colors.length - 1]);
+        }
+        
+        return result;
     }
 
     render(dimensions, state, rotationOffset) {
@@ -355,16 +428,16 @@ export class ClockFaceLayer {
         // Sun size - same as moon
         const sunRadius = ringWidth * 0.18;
         
-        // Draw white sun circle
+        // Draw sun circle with custom color
         ctx.beginPath();
         ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = this.colors.sun;
         ctx.fill();
         
-        // Add yellow outline (same thickness as moon)
+        // Sun outline with same color
         ctx.beginPath();
         ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = '#ffd700';
+        ctx.strokeStyle = this.colors.sun;
         ctx.lineWidth = 3;
         ctx.stroke();
     }
@@ -426,20 +499,20 @@ export class ClockFaceLayer {
         
         // Handle edge cases first
         if (fraction < 0.01) {
-            // New moon - all dark
+            // New moon - all dark (uses nighttime color)
             ctx.beginPath();
             ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fillStyle = '#0a0a0f';
+            ctx.fillStyle = this.colors.night;
             ctx.fill();
             ctx.restore();
             return;
         }
         
         if (fraction > 0.99) {
-            // Full moon - all lit
+            // Full moon - all lit with custom color
             ctx.beginPath();
             ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fillStyle = '#f0f0e8';
+            ctx.fillStyle = this.colors.moon;
             ctx.fill();
             ctx.restore();
             return;
@@ -462,10 +535,10 @@ export class ClockFaceLayer {
         
         const terminatorX = radius * (1 - 2 * fraction);
         
-        // Draw base dark moon
+        // Draw base dark moon (uses nighttime color)
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = '#0a0a0f';
+        ctx.fillStyle = this.colors.night;
         ctx.fill();
         
         // Now draw the lit portion on top
@@ -517,13 +590,13 @@ export class ClockFaceLayer {
         }
         
         ctx.closePath();
-        ctx.fillStyle = '#f0f0e8';
+        ctx.fillStyle = this.colors.moon;
         ctx.fill();
         
-        // Add outline on top, similar to ring outlines
+        // Outline using nighttime color
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.strokeStyle = '#2a2a2a';
+        ctx.strokeStyle = this.colors.night;
         ctx.lineWidth = 3;
         ctx.stroke();
         

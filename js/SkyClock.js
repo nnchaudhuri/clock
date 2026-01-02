@@ -10,6 +10,13 @@ import { ClockFaceLayer } from './renderer/ClockFaceLayer.js';
 
 export class SkyClock {
     constructor() {
+        // Default color palette (artistic impressionistic style)
+        // 0: Sun, 1: Moon, 2-11: Sky colors
+        this.defaultColors = [
+            '#f5e8d8', '#e8e4dc', '#1a1a2e', '#2d4059', '#a66d8f', '#d4a5a5',
+            '#f0c5a0', '#e8dcc4', '#c5d8d8', '#a8c5c5', '#8fa5a5', '#7a9999'
+        ];
+
         // Canvas layers
         this.layers = {
             background: new BackgroundLayer(document.getElementById('backgroundLayer')),
@@ -26,6 +33,15 @@ export class SkyClock {
             sunData: null,
             currentTime: new Date(),
             timezoneOffset: 0  // Offset in hours from UTC for the location
+        };
+
+        // Timelapse state
+        this.timelapse = {
+            enabled: false,
+            speed: 1,  // hours per second
+            simulatedTime: new Date(),
+            lastFrameTime: null,
+            lastDateStr: null  // Track date changes for sun data refresh
         };
 
         // Clock dimensions
@@ -83,9 +99,84 @@ export class SkyClock {
             if (e.key === 'Enter') this.handleDateChange(e.target.value);
         });
 
-        // Mode toggle
-        document.getElementById('fixedModeBtn').addEventListener('click', () => this.setMode('fixed'));
-        document.getElementById('rotatingModeBtn').addEventListener('click', () => this.setMode('rotating'));
+        // Timelapse controls
+        document.getElementById('timelapseToggle').addEventListener('click', () => this.toggleTimelapse());
+        document.getElementById('timelapseSpeed').addEventListener('input', (e) => {
+            this.timelapse.speed = parseFloat(e.target.value);
+            document.getElementById('speedValue').textContent = this.timelapse.speed;
+        });
+
+        // Color customization
+        this.setupColorControls();
+    }
+
+    setupColorControls() {
+        // Load saved colors from localStorage
+        this.loadSavedColors();
+
+        // Color picker change handlers
+        document.querySelectorAll('.color-picker').forEach(picker => {
+            picker.addEventListener('input', () => this.handleColorChange());
+        });
+
+        // Reset colors button
+        document.getElementById('resetColors').addEventListener('click', () => this.resetColors());
+    }
+
+    loadSavedColors() {
+        const savedColors = localStorage.getItem('skyClockColors');
+        if (savedColors) {
+            try {
+                const colors = JSON.parse(savedColors);
+                if (Array.isArray(colors) && colors.length === 12) {
+                    this.applyColors(colors);
+                    this.updateColorPickers(colors);
+                }
+            } catch (e) {
+                console.log('Could not load saved colors:', e);
+            }
+        }
+    }
+
+    handleColorChange() {
+        // Get current colors from pickers
+        const colors = this.getColorsFromPickers();
+        
+        // Apply to clock and save
+        this.applyColors(colors);
+        this.saveColors(colors);
+    }
+
+    getColorsFromPickers() {
+        const colors = [];
+        document.querySelectorAll('.color-picker').forEach(picker => {
+            const index = parseInt(picker.dataset.index);
+            colors[index] = picker.value;
+        });
+        return colors;
+    }
+
+    updateColorPickers(colors) {
+        document.querySelectorAll('.color-picker').forEach(picker => {
+            const index = parseInt(picker.dataset.index);
+            if (colors[index]) {
+                picker.value = colors[index];
+            }
+        });
+    }
+
+    applyColors(colors) {
+        this.layers.clockFace.setCustomColors(colors);
+    }
+
+    saveColors(colors) {
+        localStorage.setItem('skyClockColors', JSON.stringify(colors));
+    }
+
+    resetColors() {
+        this.updateColorPickers(this.defaultColors);
+        this.applyColors(this.defaultColors);
+        localStorage.removeItem('skyClockColors');
     }
 
     handleDateChange(value) {
@@ -189,20 +280,24 @@ export class SkyClock {
         }
     }
 
-    async fetchSunData() {
+    fetchSunData() {
         if (!this.state.location) return;
 
         try {
-            const sunData = await SunService.fetchSunData(
+            // Ensure we have a valid date
+            const date = this.state.date || new Date();
+            
+            const sunData = SunService.getSunData(
                 this.state.location.lat,
                 this.state.location.lng,
-                this.state.date
+                date
             );
 
             this.state.sunData = sunData;
             this.updateInfoPanel();
         } catch (error) {
-            console.error('Error fetching sun data:', error);
+            console.error('Error calculating sun data:', error);
+            alert('Unable to calculate sun data. Please check your location coordinates.');
         }
     }
 
@@ -224,34 +319,90 @@ export class SkyClock {
         this.updateCurrentTimeDisplay();
     }
 
-    setMode(mode) {
-        if (this.state.mode === mode) return;
-
-        this.state.mode = mode;
-
-        document.getElementById('fixedModeBtn').classList.toggle('active', mode === 'fixed');
-        document.getElementById('rotatingModeBtn').classList.toggle('active', mode === 'rotating');
-        document.getElementById('modeDescription').textContent = 
-            mode === 'fixed' 
-                ? 'Noon at top, time indicator rotates' 
-                : 'Current time at top, arc rotates';
-    }
-
     startAnimation() {
-        const animate = () => {
-            // Keep current time as real UTC time for proper comparisons
-            this.state.currentTime = new Date();
+        const animate = (timestamp) => {
+            if (this.timelapse.enabled) {
+                // Calculate delta time
+                if (this.timelapse.lastFrameTime !== null) {
+                    const deltaSeconds = (timestamp - this.timelapse.lastFrameTime) / 1000;
+                    const hoursToAdd = deltaSeconds * this.timelapse.speed;
+                    
+                    // Advance simulated time
+                    this.timelapse.simulatedTime = new Date(
+                        this.timelapse.simulatedTime.getTime() + hoursToAdd * 3600000
+                    );
+                    
+                    // Update state
+                    this.state.currentTime = this.timelapse.simulatedTime;
+                    this.state.date = new Date(this.timelapse.simulatedTime);
+                    
+                    // Check if date changed - refresh sun data
+                    const newDateStr = this.state.date.toISOString().split('T')[0];
+                    if (newDateStr !== this.timelapse.lastDateStr) {
+                        this.timelapse.lastDateStr = newDateStr;
+                        document.getElementById('dateInput').value = newDateStr;
+                        this.fetchSunData();
+                    }
+                }
+                this.timelapse.lastFrameTime = timestamp;
+            } else {
+                // Normal mode - use real time
+                this.state.currentTime = new Date();
+            }
+            
             this.updateCurrentTimeDisplay();
             this.render();
             this.animationId = requestAnimationFrame(animate);
         };
-        animate();
+        requestAnimationFrame(animate);
+    }
+
+    toggleTimelapse() {
+        this.timelapse.enabled = !this.timelapse.enabled;
+        
+        const btn = document.getElementById('timelapseToggle');
+        if (this.timelapse.enabled) {
+            // Starting timelapse - initialize from current state
+            this.timelapse.simulatedTime = new Date(this.state.date);
+            this.timelapse.simulatedTime.setHours(
+                this.state.currentTime.getHours(),
+                this.state.currentTime.getMinutes(),
+                this.state.currentTime.getSeconds()
+            );
+            this.timelapse.lastFrameTime = null;
+            this.timelapse.lastDateStr = this.state.date.toISOString().split('T')[0];
+            btn.textContent = '⏸';
+        } else {
+            // Stopping timelapse - reset to today's date and current time
+            this.state.date = new Date();
+            this.state.currentTime = new Date();
+            document.getElementById('dateInput').value = this.state.date.toISOString().split('T')[0];
+            this.fetchSunData();  // Refresh sun data for today
+            btn.textContent = '▶';
+        }
     }
 
     updateCurrentTimeDisplay() {
         // Display the time at the location using timezone offset
-        document.getElementById('currentTimeDisplay').textContent = 
-            TimeUtils.formatCurrentTimeAtLocation(this.state.timezoneOffset);
+        if (this.timelapse.enabled) {
+            // Show simulated time
+            const simTime = this.timelapse.simulatedTime;
+            const utcHours = simTime.getUTCHours();
+            const utcMinutes = simTime.getUTCMinutes();
+            const utcSeconds = simTime.getUTCSeconds();
+            
+            let localHours = utcHours + this.state.timezoneOffset;
+            while (localHours < 0) localHours += 24;
+            while (localHours >= 24) localHours -= 24;
+            
+            const hours = Math.floor(localHours).toString().padStart(2, '0');
+            const minutes = utcMinutes.toString().padStart(2, '0');
+            const seconds = utcSeconds.toString().padStart(2, '0');
+            document.getElementById('currentTimeDisplay').textContent = `${hours}:${minutes}:${seconds}`;
+        } else {
+            document.getElementById('currentTimeDisplay').textContent = 
+                TimeUtils.formatCurrentTimeAtLocation(this.state.timezoneOffset);
+        }
     }
 
     render() {

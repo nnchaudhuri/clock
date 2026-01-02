@@ -1,32 +1,26 @@
 /**
- * Sunrise/sunset data service
+ * Sunrise/sunset data service using SunCalc (local calculation)
  */
+import SunCalc from 'https://cdn.jsdelivr.net/npm/suncalc@1.9.0/+esm';
+
 export class SunService {
     /**
-     * Fetch sun data from API
+     * Calculate sun data locally using SunCalc library
      * Returns sunrise, sunset, and twilight times
      */
-    static async fetchSunData(lat, lng, date) {
-        const dateStr = date.toISOString().split('T')[0];
-
-        const response = await fetch(
-            `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=${dateStr}&formatted=0`
-        );
-        const data = await response.json();
-
-        if (data.status !== 'OK') {
-            throw new Error('Failed to fetch sun data');
-        }
+    static getSunData(lat, lng, date) {
+        // SunCalc calculates times for the given date
+        const times = SunCalc.getTimes(date, lat, lng);
 
         return {
-            sunrise: new Date(data.results.sunrise),
-            sunset: new Date(data.results.sunset),
-            solarNoon: new Date(data.results.solar_noon),
-            civilTwilightBegin: new Date(data.results.civil_twilight_begin),
-            civilTwilightEnd: new Date(data.results.civil_twilight_end),
-            nauticalTwilightBegin: new Date(data.results.nautical_twilight_begin),
-            nauticalTwilightEnd: new Date(data.results.nautical_twilight_end),
-            dayLength: data.results.day_length
+            sunrise: times.sunrise,
+            sunset: times.sunset,
+            solarNoon: times.solarNoon,
+            civilTwilightBegin: times.dawn,           // Civil twilight start
+            civilTwilightEnd: times.dusk,             // Civil twilight end
+            nauticalTwilightBegin: times.nauticalDawn, // Nautical twilight start
+            nauticalTwilightEnd: times.nauticalDusk,   // Nautical twilight end
+            dayLength: times.sunset - times.sunrise    // Duration in milliseconds
         };
     }
 }

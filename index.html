@@ -19,58 +19,71 @@
 
         <!-- Dropdown menu panel -->
         <div id="menuPanel" class="menu-panel">
-            <!-- Display Mode at top -->
-            <div class="control-group">
-                <label>Display Mode</label>
-                <div class="mode-toggle">
-                    <button id="fixedModeBtn" class="mode-btn">Fixed</button>
-                    <button id="rotatingModeBtn" class="mode-btn active">Rotating</button>
-                </div>
-                <p class="mode-description" id="modeDescription">
-                    Current time at top, arc rotates
-                </p>
+            <!-- Hidden mode buttons (keep for JS compatibility) -->
+            <button id="fixedModeBtn" class="mode-btn" style="display:none">Fixed</button>
+            <button id="rotatingModeBtn" class="mode-btn" style="display:none">Rotating</button>
+            <p id="modeDescription" style="display:none"></p>
+
+            <!-- Location -->
+            <div class="control-row">
+                <input type="text" id="locationInput" placeholder="City or lat,lng">
+                <button id="searchBtn" class="icon-btn" title="Search">⌕</button>
+                <button id="useMyLocation" class="icon-btn" title="My Location">◎</button>
             </div>
 
-            <div class="divider"></div>
+            <!-- Date -->
+            <div class="control-row">
+                <input type="date" id="dateInput">
+            </div>
 
-            <div class="control-group">
-                <label for="locationInput">Location</label>
-                <input type="text" id="locationInput" placeholder="City or coordinates (lat,lng)">
-                <div class="button-row">
-                    <button id="searchBtn">Search</button>
-                    <button id="useMyLocation">My Location</button>
+            <!-- Timelapse -->
+            <div class="timelapse-row">
+                <button id="timelapseToggle" class="play-btn">▶</button>
+                <input type="range" id="timelapseSpeed" min="0.5" max="24" step="0.5" value="1">
+                <span class="speed-label"><span id="speedValue">1</span> hr/s</span>
+            </div>
+
+            <!-- Info -->
+            <div class="info-row">
+                <span class="sun-info">☀↑ <span id="sunriseDisplay">--:--</span></span>
+                <span class="sun-info">☀↓ <span id="sunsetDisplay">--:--</span></span>
+                <span class="sun-info"><span id="dayLengthDisplay">--</span></span>
+            </div>
+
+            <!-- Color Customization (12 colors: sun, moon, 10 sky colors) -->
+            <div class="color-section">
+                <!-- Top row: Sun, Moon, Reset -->
+                <div class="color-control-row">
+                    <div class="color-item">
+                        <span class="color-label">☀</span>
+                        <input type="color" class="color-picker" data-index="0" value="#f5e8d8" title="Sun">
+                    </div>
+                    <div class="color-item">
+                        <span class="color-label">☾</span>
+                        <input type="color" class="color-picker" data-index="1" value="#e8e4dc" title="Moon">
+                    </div>
+                    <button id="resetColors" class="reset-btn" title="Reset Colors">↻</button>
+                </div>
+                <!-- Sky colors: 2 rows of 5 -->
+                <div class="color-grid">
+                    <!-- Row 1: Night + Twilight + Sunrise (2+3) -->
+                    <input type="color" class="color-picker" data-index="2" value="#1a1a2e" title="Night">
+                    <input type="color" class="color-picker" data-index="3" value="#2d4059" title="Twilight">
+                    <input type="color" class="color-picker" data-index="4" value="#a66d8f" title="Sunrise 1">
+                    <input type="color" class="color-picker" data-index="5" value="#d4a5a5" title="Sunrise 2">
+                    <input type="color" class="color-picker" data-index="6" value="#f0c5a0" title="Sunrise End">
+                    <!-- Row 2: Morning to Noon (5) -->
+                    <input type="color" class="color-picker" data-index="7" value="#e8dcc4" title="Early Morning">
+                    <input type="color" class="color-picker" data-index="8" value="#c5d8d8" title="Morning">
+                    <input type="color" class="color-picker" data-index="9" value="#a8c5c5" title="Late Morning">
+                    <input type="color" class="color-picker" data-index="10" value="#8fa5a5" title="Pre-Noon">
+                    <input type="color" class="color-picker" data-index="11" value="#7a9999" title="Solar Noon">
                 </div>
             </div>
 
-            <div class="control-group">
-                <label for="dateInput">Date</label>
-                <input type="text" id="dateInput" placeholder="YYYY-MM-DD">
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="info-panel">
-                <div class="info-item">
-                    <span class="info-label">Location</span>
-                    <span id="locationDisplay">--</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Time</span>
-                    <span id="currentTimeDisplay">--:--</span>
-                </div>
-                <div class="info-item sunrise">
-                    <span class="info-label">Sunrise</span>
-                    <span id="sunriseDisplay">--:--</span>
-                </div>
-                <div class="info-item sunset">
-                    <span class="info-label">Sunset</span>
-                    <span id="sunsetDisplay">--:--</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Day Length</span>
-                    <span id="dayLengthDisplay">--:--</span>
-                </div>
-            </div>
+            <!-- Hidden elements for JS compatibility -->
+            <span id="currentTimeDisplay" style="display:none">--:--</span>
+            <span id="locationDisplay" style="display:none">--</span>
         </div>
 
         <!-- Clock container - fills most of the screen -->

@@ -85,9 +85,9 @@ body {
     z-index: 99;
     background: rgba(20, 20, 30, 0.95);
     backdrop-filter: blur(20px);
-    border-radius: 16px;
-    padding: 20px;
-    width: 300px;
+    border-radius: 12px;
+    padding: 12px;
+    width: 260px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     
@@ -104,113 +104,215 @@ body {
     transform: translateY(0);
 }
 
-.divider {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.1);
-    margin: 16px 0;
+/* Compact control rows */
+.control-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
 }
 
-.control-group {
-    margin-bottom: 16px;
-}
-
-.control-group:last-child {
-    margin-bottom: 0;
-}
-
-.control-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 0.8rem;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.control-group input[type="text"] {
-    width: 100%;
-    padding: 10px 12px;
+.control-row input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
+    border-radius: 6px;
     background: rgba(0, 0, 0, 0.3);
     color: #fff;
     font-family: inherit;
-    font-size: 0.95rem;
-    margin-bottom: 8px;
+    font-size: 0.85rem;
 }
 
-.control-group input:focus {
+.control-row input[type="date"] {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.85rem;
+}
+
+.control-row input:focus {
     outline: none;
     border-color: #87CEEB;
 }
 
-.button-row {
+.icon-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
     display: flex;
-    gap: 8px;
+    align-items: center;
+    justify-content: center;
 }
 
-.control-group button {
-    flex: 1;
-    padding: 8px 12px;
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Timelapse row */
+.timelapse-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.play-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     background: rgba(255, 255, 255, 0.1);
     color: #fff;
     font-size: 0.85rem;
     cursor: pointer;
     transition: all 0.2s ease;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.control-group button:hover {
+.play-btn:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* Mode Toggle */
-.mode-toggle {
-    display: flex;
-    gap: 8px;
-}
-
-.mode-btn {
+.timelapse-row input[type="range"] {
     flex: 1;
-    padding: 10px 12px !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    background: rgba(0, 0, 0, 0.3) !important;
-    transition: all 0.3s ease !important;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
-.mode-btn.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    border-color: transparent !important;
+.timelapse-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #87CEEB;
+    cursor: pointer;
 }
 
-.mode-description {
-    margin-top: 8px;
-    font-size: 0.75rem;
-    color: #666;
-    font-style: italic;
+.timelapse-row input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #87CEEB;
+    cursor: pointer;
+    border: none;
 }
 
-/* Info Panel */
-.info-panel {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
-    padding: 12px;
+.speed-label {
+    font-size: 0.85rem;
+    color: #aaa;
+    white-space: nowrap;
+    min-width: 50px;
 }
 
-.info-item {
+/* Info rows */
+.info-row {
     display: flex;
     justify-content: space-between;
-    padding: 6px 0;
-    font-size: 0.9rem;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 0.85rem;
+    color: #aaa;
 }
 
-.info-item:not(:last-child) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+.sun-info {
+    font-size: 0.85rem;
 }
 
-.info-label {
-    color: #666;
+/* Color customization section */
+.color-section {
+    margin-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 10px;
+}
+
+.color-control-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.color-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.color-label {
+    font-size: 1rem;
+    color: #aaa;
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+}
+
+.color-picker {
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+    padding: 2px;
+}
+
+.color-picker::-webkit-color-swatch {
+    border-radius: 2px;
+    border: none;
+}
+
+.color-picker::-moz-color-swatch {
+    border-radius: 2px;
+    border: none;
+}
+
+.reset-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.reset-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* Clock Container - Fills most of screen height */
@@ -238,10 +340,6 @@ body {
 
 #clockFaceLayer {
     z-index: 3;
-}
-
-#effectsLayer {
-    z-index: 4;
 }
 
 /* Mobile adjustments */

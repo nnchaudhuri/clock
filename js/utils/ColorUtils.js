@@ -15,6 +15,16 @@ export class ColorUtils {
     }
 
     /**
+     * Convert RGB to hex
+     */
+    static rgbToHex(r, g, b) {
+        return '#' + [r, g, b].map(x => {
+            const hex = Math.round(Math.max(0, Math.min(255, x))).toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        }).join('');
+    }
+
+    /**
      * Interpolate between two colors
      */
     static interpolate(color1, color2, factor) {
@@ -26,6 +36,20 @@ export class ColorUtils {
         const b = Math.round(c1.b + (c2.b - c1.b) * factor);
 
         return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    /**
+     * Interpolate between two colors and return hex
+     */
+    static interpolateHex(color1, color2, factor) {
+        const c1 = this.hexToRgb(color1);
+        const c2 = this.hexToRgb(color2);
+
+        const r = Math.round(c1.r + (c2.r - c1.r) * factor);
+        const g = Math.round(c1.g + (c2.g - c1.g) * factor);
+        const b = Math.round(c1.b + (c2.b - c1.b) * factor);
+
+        return this.rgbToHex(r, g, b);
     }
 
     /**

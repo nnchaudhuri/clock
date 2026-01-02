@@ -6,6 +6,8 @@ export class FrameLayer {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.frameColor = '#2a2a2a';
+        this.cachedGradient = null;
+        this.lastDimensions = null;
     }
 
     render(dimensions) {
@@ -31,27 +33,36 @@ export class FrameLayer {
         ctx.fill();
         ctx.restore();
 
-        // Frame gradient
-        const frameGradient = ctx.createRadialGradient(
-            centerX - 50, centerY - 50, 0,
-            centerX, centerY, frameOuterRadius
-        );
-        frameGradient.addColorStop(0, '#4a4a4a');
-        frameGradient.addColorStop(0.5, '#2a2a2a');
-        frameGradient.addColorStop(1, '#1a1a1a');
+        // Cache gradient if dimensions changed
+        if (!this.cachedGradient || 
+            !this.lastDimensions ||
+            this.lastDimensions.centerX !== centerX ||
+            this.lastDimensions.centerY !== centerY ||
+            this.lastDimensions.outerRadius !== outerRadius) {
+            
+            this.cachedGradient = ctx.createRadialGradient(
+                centerX - 50, centerY - 50, 0,
+                centerX, centerY, frameOuterRadius
+            );
+            this.cachedGradient.addColorStop(0, '#4a4a4a');
+            this.cachedGradient.addColorStop(0.5, '#2a2a2a');
+            this.cachedGradient.addColorStop(1, '#1a1a1a');
+            
+            this.lastDimensions = { centerX, centerY, outerRadius };
+        }
 
         // Outer frame
         ctx.beginPath();
         ctx.arc(centerX, centerY, frameOuterRadius, 0, Math.PI * 2);
         ctx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2, true);
-        ctx.fillStyle = frameGradient;
+        ctx.fillStyle = this.cachedGradient;
         ctx.fill();
 
         // Inner frame edge - same thickness as outer frame
         ctx.beginPath();
         ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
         ctx.arc(centerX, centerY, innerRadius - 12, 0, Math.PI * 2, true);
-        ctx.fillStyle = frameGradient;
+        ctx.fillStyle = this.cachedGradient;
         ctx.fill();
     }
 }
