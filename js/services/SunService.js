@@ -1,5 +1,5 @@
 /**
- * Sunrise/sunset data service using SunCalc (local calculation)
+ * Sunrise/sunset data service using SunCalc
  */
 import SunCalc from 'https://cdn.jsdelivr.net/npm/suncalc@1.9.0/+esm';
 
