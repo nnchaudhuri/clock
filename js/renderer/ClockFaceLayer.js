@@ -612,8 +612,11 @@ export class ClockFaceLayer {
         for (let hour = 0; hour < 24; hour++) {
             const hourAngle = ((hour - 12) * Math.PI / 12) + rotationOffset - Math.PI / 2;
 
-            // Tick dimensions - bolder for 6-hour intervals
+            // Differentiate midnight (0) and noon (12) ticks
+            const isMidnight = hour === 0;
+            const isNoon = hour === 12;
             const is6Hour = hour % 6 === 0;
+            
             const tickInner = outerRadius + 6;
             const tickOuter = outerRadius + (is6Hour ? 18 : 12);
             
@@ -625,7 +628,17 @@ export class ClockFaceLayer {
             ctx.beginPath();
             ctx.moveTo(x1, y1);
             ctx.lineTo(x2, y2);
-            ctx.strokeStyle = is6Hour ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.25)';
+            
+            // Color scheme: midnight (deep indigo), noon (soft sky blue), other 6-hour marks (white), regular (subtle white)
+            if (isMidnight) {
+                ctx.strokeStyle = '#4a5a7a'; // Deep indigo for midnight
+            } else if (isNoon) {
+                ctx.strokeStyle = '#a8c5d6'; // Soft sky blue for noon
+            } else if (is6Hour) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            } else {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            }
             ctx.lineWidth = is6Hour ? 3 : 1;
             ctx.stroke();
         }

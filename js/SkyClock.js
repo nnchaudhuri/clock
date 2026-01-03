@@ -68,19 +68,50 @@ export class SkyClock {
     }
 
     setupEventListeners() {
-        // Menu toggle
-        document.getElementById('menuToggle').addEventListener('click', () => {
-            document.getElementById('menuPanel').classList.toggle('open');
-            document.getElementById('menuToggle').classList.toggle('open');
+        // Info toggle
+        document.getElementById('infoToggle').addEventListener('click', () => {
+            const infoPanel = document.getElementById('infoPanel');
+            const menuPanel = document.getElementById('menuPanel');
+            const menuToggle = document.getElementById('menuToggle');
+            
+            infoPanel.classList.toggle('open');
+            
+            // Close menu if open
+            if (infoPanel.classList.contains('open')) {
+                menuPanel.classList.remove('open');
+                menuToggle.classList.remove('open');
+            }
         });
 
-        // Close menu when clicking outside
+        // Menu toggle
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            const menuPanel = document.getElementById('menuPanel');
+            const menuToggle = document.getElementById('menuToggle');
+            const infoPanel = document.getElementById('infoPanel');
+            
+            menuPanel.classList.toggle('open');
+            menuToggle.classList.toggle('open');
+            
+            // Close info if open
+            if (menuPanel.classList.contains('open')) {
+                infoPanel.classList.remove('open');
+            }
+        });
+
+        // Close menu/info when clicking outside
         document.addEventListener('click', (e) => {
             const menu = document.getElementById('menuPanel');
-            const toggle = document.getElementById('menuToggle');
-            if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+            const menuToggle = document.getElementById('menuToggle');
+            const infoPanel = document.getElementById('infoPanel');
+            const infoToggle = document.getElementById('infoToggle');
+            
+            if (!menu.contains(e.target) && !menuToggle.contains(e.target)) {
                 menu.classList.remove('open');
-                toggle.classList.remove('open');
+                menuToggle.classList.remove('open');
+            }
+            
+            if (!infoPanel.contains(e.target) && !infoToggle.contains(e.target)) {
+                infoPanel.classList.remove('open');
             }
         });
 

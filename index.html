@@ -8,6 +8,11 @@
 </head>
 <body>
     <div class="app-container">
+        <!-- Info button -->
+        <button id="infoToggle" class="info-toggle" aria-label="About this clock">
+            <span class="info-icon">i</span>
+        </button>
+
         <!-- Menu toggle button -->
         <button id="menuToggle" class="menu-toggle" aria-label="Open settings menu">
             <span class="hamburger-icon">
@@ -31,9 +36,10 @@
                 <button id="useMyLocation" class="icon-btn" title="My Location">◎</button>
             </div>
 
-            <!-- Date -->
+            <!-- Date & Time -->
             <div class="control-row">
                 <input type="date" id="dateInput">
+                <span id="currentTimeDisplay" class="time-display">--:--:--</span>
             </div>
 
             <!-- Timelapse -->
@@ -82,8 +88,21 @@
             </div>
 
             <!-- Hidden elements for JS compatibility -->
-            <span id="currentTimeDisplay" style="display:none">--:--</span>
             <span id="locationDisplay" style="display:none">--</span>
+        </div>
+
+        <!-- Info Panel -->
+        <div id="infoPanel" class="info-panel">
+            <h3>Sky Clock</h3>
+            <p>A new way to show time passing: through the rhythmic colors of the sky.</p>
+            <p>The full circle represents 24 hours:</p>
+            <ul>
+                <li><strong>Light blue tick</strong> — Noon (12pm)</li>
+                <li><strong>Dark blue tick</strong> — Midnight (12am)</li>
+                <li><strong>White ticks</strong> — 6am and 6pm</li>
+                <li><strong>White line at top</strong> — Current time</li>
+            </ul>
+            <p>Colors change throughout the day based on your location's sun and moon positions.</p>
         </div>
 
         <!-- Clock container - fills most of the screen -->

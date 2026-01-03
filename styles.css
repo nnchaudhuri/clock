@@ -21,6 +21,37 @@ body {
     position: relative;
 }
 
+/* Info Toggle Button */
+.info-toggle {
+    position: fixed;
+    top: 20px;
+    right: 80px;
+    z-index: 100;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.info-icon {
+    font-size: 24px;
+    font-weight: bold;
+    font-family: Georgia, serif;
+    font-style: italic;
+}
+
 /* Menu Toggle Button */
 .menu-toggle {
     position: fixed;
@@ -77,6 +108,58 @@ body {
     transform: translateY(-6px) rotate(-45deg);
 }
 
+/* Info Panel */
+.info-panel {
+    position: fixed;
+    top: 80px;
+    right: 80px;
+    z-index: 99;
+    width: 340px;
+    max-height: 0;
+    overflow: hidden;
+    background: rgba(20, 20, 30, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: 0 20px;
+}
+
+.info-panel.open {
+    max-height: 600px;
+    padding: 20px;
+}
+
+.info-panel h3 {
+    margin: 0 0 12px 0;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.info-panel p {
+    margin: 0 0 12px 0;
+    color: #ddd;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.info-panel ul {
+    margin: 0 0 12px 0;
+    padding-left: 20px;
+    color: #ddd;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.info-panel li {
+    margin-bottom: 6px;
+}
+
+.info-panel strong {
+    color: #fff;
+}
+
 /* Dropdown Menu Panel */
 .menu-panel {
     position: fixed;
@@ -88,7 +171,6 @@ body {
     border-radius: 12px;
     padding: 12px;
     width: 260px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     
     /* Hidden by default */
@@ -137,6 +219,14 @@ body {
 .control-row input:focus {
     outline: none;
     border-color: #87CEEB;
+}
+
+.time-display {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    color: #aaa;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .icon-btn {
