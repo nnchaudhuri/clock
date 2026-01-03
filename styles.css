@@ -434,6 +434,23 @@ body {
 
 /* Mobile adjustments */
 @media (max-width: 500px) {
+    .info-toggle {
+        top: 15px;
+        right: 70px;
+        width: 44px;
+        height: 44px;
+    }
+    
+    .info-panel {
+        right: 10px;
+        left: 10px;
+        width: auto;
+    }
+    
+    .info-panel.open {
+        max-height: 70vh;
+    }
+    
     .menu-panel {
         right: 10px;
         left: 10px;
