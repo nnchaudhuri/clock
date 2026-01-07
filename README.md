@@ -1,2 +1,2 @@
 # clock
-a way to show time passing through the sky
+A new way to show time passing: through the rhythmic colors of the sky
